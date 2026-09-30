@@ -1,0 +1,176 @@
+{% extends "layout.html" %}
+
+{% block page_title %}Buy, Sell & Rent Market Planner{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 28px; background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(16,185,129,0.08)); border: 1px solid rgba(99,102,241,0.25);">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;">
+        <div>
+            <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-secondary); margin-bottom: 8px;">Real-estate mode</div>
+            <div style="font-size: clamp(1.7rem, 2vw, 2.4rem); font-weight: 800;">Buy, sell, and rent with one market view</div>
+        </div>
+        <span id="marketModeBadge" class="badge badge-info">Buy mode</span>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.1fr; gap: 28px;">
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-building-circle-check"></i> Property details</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label"><span>Mode</span></label>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                <button type="button" class="btn-primary btn-sm market-mode active" data-mode="buy">Buy</button>
+                <button type="button" class="btn-secondary btn-sm market-mode" data-mode="sell">Sell</button>
+                <button type="button" class="btn-secondary btn-sm market-mode" data-mode="rent">Rent</button>
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label"><span>Locality / Neighborhood</span></label>
+            <select id="marketLocation" class="form-control" required></select>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <span>Carpet Area (Square Feet)</span>
+                <span id="marketSqftDisp" style="color: var(--accent-cyan); font-weight: 700;">1,450 sqft</span>
+            </label>
+            <input type="range" id="marketSqft" min="550" max="4800" step="50" value="1450" class="form-control" oninput="updateDisp('marketSqftDisp', parseInt(this.value).toLocaleString() + ' sqft')">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <span>Bedrooms (BHK)</span>
+                <span id="marketBhkDisp" style="color: var(--accent-cyan); font-weight: 700;">3 BHK</span>
+            </label>
+            <input type="range" id="marketBhk" min="1" max="5" step="1" value="3" class="form-control" oninput="updateDisp('marketBhkDisp', this.value + ' BHK')">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <span>Bathrooms</span>
+                <span id="marketBathDisp" style="color: var(--accent-cyan); font-weight: 700;">2 Baths</span>
+            </label>
+            <input type="range" id="marketBath" min="1" max="5" step="1" value="2" class="form-control" oninput="updateDisp('marketBathDisp', this.value + ' Baths')">
+        </div>
+
+        <div class="form-group">
+            <label class="form-label">
+                <span>Property Age</span>
+                <span id="marketAgeDisp" style="color: var(--accent-cyan); font-weight: 700;">4 Years</span>
+            </label>
+            <input type="range" id="marketAge" min="0" max="30" step="1" value="4" class="form-control" oninput="updateDisp('marketAgeDisp', this.value + ' Years')">
+        </div>
+
+        <button class="btn-primary" style="width: 100%;" onclick="runMarketEstimate()">
+            <i class="fa-solid fa-magnifying-glass-chart"></i> Estimate for this mode
+        </button>
+    </div>
+
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-chart-line"></i> Market estimate</div>
+        </div>
+
+        <div style="text-align: center; padding: 20px 0; border-bottom: 1px dashed var(--border-color);">
+            <div id="marketHeadline" style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Estimated buy price</div>
+            <div id="marketTarget" style="font-size: 2.8rem; font-weight: 800; color: var(--primary); margin: 10px 0;">₹0 Lakhs</div>
+            <div id="marketDetail" style="font-size: 0.95rem; color: var(--text-secondary);">Select your property details to estimate the value.</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
+            <div style="background: var(--bg-input); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="font-size: 0.78rem; color: var(--text-secondary);">Rate / SqFt</div>
+                <div id="marketPps" style="font-size: 1.3rem; font-weight: 700;">₹0/sqft</div>
+            </div>
+            <div style="background: var(--bg-input); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="font-size: 0.78rem; color: var(--text-secondary);">Local Avg</div>
+                <div id="marketLocalAvg" style="font-size: 1.3rem; font-weight: 700;">₹0/sqft</div>
+            </div>
+        </div>
+
+        <div style="background: var(--bg-input); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-secondary);">Recommendation</div>
+                <div id="marketAction" class="badge badge-info">Buy recommendation</div>
+            </div>
+            <i class="fa-solid fa-handshake" style="font-size: 1.8rem; color: var(--primary);"></i>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentMarketMode = 'buy';
+
+    async function initMarketplacePage() {
+        try {
+            const res = await fetch('/api/metadata');
+            const metadata = await res.json();
+            const select = document.getElementById('marketLocation');
+            select.innerHTML = metadata.locations.map(loc => `<option value="${loc}">${loc}</option>`).join('');
+
+            document.querySelectorAll('.market-mode').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    currentMarketMode = btn.dataset.mode;
+                    document.querySelectorAll('.market-mode').forEach(b => {
+                        b.classList.toggle('active', b.dataset.mode === currentMarketMode);
+                        b.classList.toggle('btn-primary', b.dataset.mode === currentMarketMode);
+                        b.classList.toggle('btn-secondary', b.dataset.mode !== currentMarketMode);
+                    });
+                    runMarketEstimate();
+                });
+            });
+
+            runMarketEstimate();
+        } catch (err) {
+            console.error('Marketplace page error:', err);
+        }
+    }
+
+    async function runMarketEstimate() {
+        const payload = {
+            mode: currentMarketMode,
+            location: document.getElementById('marketLocation').value,
+            total_sqft: parseFloat(document.getElementById('marketSqft').value),
+            bhk: parseInt(document.getElementById('marketBhk').value, 10),
+            bath: parseInt(document.getElementById('marketBath').value, 10),
+            age: parseInt(document.getElementById('marketAge').value, 10)
+        };
+
+        try {
+            const res = await fetch('/api/marketplace-estimate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            const badge = document.getElementById('marketModeBadge');
+            badge.innerText = `${currentMarketMode.charAt(0).toUpperCase() + currentMarketMode.slice(1)} mode`;
+            badge.className = `badge ${currentMarketMode === 'sell' ? 'badge-warning' : currentMarketMode === 'rent' ? 'badge-success' : 'badge-info'}`;
+
+            document.getElementById('marketHeadline').innerText = data.headline;
+            document.getElementById('marketTarget').innerText = data.target_label;
+            document.getElementById('marketDetail').innerText = data.detail;
+            document.getElementById('marketPps').innerText = `₹${Number(data.price_per_sqft || 0).toLocaleString('en-IN')}/sqft`;
+            document.getElementById('marketLocalAvg').innerText = `₹${Number(data.location_avg_pps || 0).toLocaleString('en-IN')}/sqft`;
+
+            const actionBadge = document.getElementById('marketAction');
+            actionBadge.innerText = data.action;
+            actionBadge.className = `badge ${currentMarketMode === 'sell' ? 'badge-warning' : currentMarketMode === 'rent' ? 'badge-success' : 'badge-info'}`;
+
+            showToast(`${data.tag} updated`, 'success');
+        } catch (err) {
+            console.error('Market estimate error:', err);
+            showToast('Unable to estimate market value', 'error');
+        }
+    }
+
+    window.onload = initMarketplacePage;
+</script>
+{% endblock %}

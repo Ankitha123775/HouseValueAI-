@@ -1,0 +1,262 @@
+{% extends "layout.html" %}
+
+{% block page_title %}Predict Property Price & AI Intelligence{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 28px; background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(6,182,212,0.06)); border: 1px solid rgba(99,102,241,0.25);">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;">
+        <div>
+            <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-secondary); margin-bottom: 8px;">AI Valuation</div>
+            <div style="font-size: clamp(1.7rem, 2vw, 2.4rem); font-weight: 800;">Smart property price prediction</div>
+        </div>
+        <span id="predictSummaryBadge" class="badge badge-info">Ready for valuation</span>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 28px;">
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-sliders"></i> Property Attributes</div>
+        </div>
+
+        <form id="predictForm" onsubmit="handlePredictSubmit(event)">
+            <div class="form-group">
+                <label class="form-label">
+                    <span><i class="fa-solid fa-location-dot"></i> Locality / Neighborhood</span>
+                </label>
+                <select id="inputLocation" class="form-control" required></select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <span><i class="fa-solid fa-vector-square"></i> Carpet Area (Square Feet)</span>
+                    <span id="sqftDisp" style="color: var(--accent-cyan); font-weight: 700;">1,450 sqft</span>
+                </label>
+                <input type="range" id="inputSqft" min="550" max="4800" step="50" value="1450" class="form-control" oninput="updateDisp('sqftDisp', parseInt(this.value).toLocaleString() + ' sqft')">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <span><i class="fa-solid fa-bed"></i> Bedrooms (BHK)</span>
+                    <span id="bhkDisp" style="color: var(--accent-cyan); font-weight: 700;">3 BHK</span>
+                </label>
+                <input type="range" id="inputBhk" min="1" max="5" step="1" value="3" class="form-control" oninput="updateDisp('bhkDisp', this.value + ' BHK')">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <span><i class="fa-solid fa-bath"></i> Bathrooms</span>
+                    <span id="bathDisp" style="color: var(--accent-cyan); font-weight: 700;">2 Baths</span>
+                </label>
+                <input type="range" id="inputBath" min="1" max="5" step="1" value="2" class="form-control" oninput="updateDisp('bathDisp', this.value + ' Baths')">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <span><i class="fa-solid fa-calendar"></i> Property Age</span>
+                    <span id="ageDisp" style="color: var(--accent-cyan); font-weight: 700;">4 Years Old</span>
+                </label>
+                <input type="range" id="inputAge" min="0" max="30" step="1" value="4" class="form-control" oninput="updateDisp('ageDisp', this.value + ' Years Old')">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label"><span>Quick Presets</span></label>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button type="button" class="btn-secondary btn-sm" onclick="setPreset('Bengaluru - Indiranagar', 1200, 2, 2, 2)">Bengaluru 2BHK</button>
+                    <button type="button" class="btn-secondary btn-sm" onclick="setPreset('Mysuru - Gokulam', 1800, 3, 2, 3)">Mysuru 3BHK</button>
+                    <button type="button" class="btn-secondary btn-sm" onclick="setPreset('Mangaluru - Kadri', 2200, 3, 3, 5)">Mangaluru Villa</button>
+                    <button type="button" class="btn-secondary btn-sm" onclick="setPreset('Udupi - Manipal', 1500, 2, 2, 1)">Manipal 2BHK</button>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%;">
+                <i class="fa-solid fa-wand-magic-sparkles"></i> Predict Estimated Price
+            </button>
+        </form>
+    </div>
+
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-chart-line"></i> ML Valuation Results</div>
+            <div style="display: flex; gap: 8px;">
+                <button id="btnSaveFav" class="btn-secondary btn-sm" onclick="saveCurrentFav()"><i class="fa-solid fa-bookmark"></i> Favorite</button>
+                <a id="btnDownloadPdf" href="#" class="btn-primary btn-sm" style="display: none;"><i class="fa-solid fa-file-pdf"></i> Download PDF</a>
+            </div>
+        </div>
+
+        <div style="text-align: center; padding: 20px 0; border-bottom: 1px dashed var(--border-color);">
+            <div style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 700; text-transform: uppercase;">Estimated Market Valuation</div>
+            <div id="resPriceLakhs" style="font-size: 2.8rem; font-weight: 800; color: var(--primary); margin: 6px 0;">₹0 Lakhs</div>
+            <div id="resPriceInr" style="font-size: 1.1rem; color: var(--accent-cyan); font-weight: 600;">(₹0)</div>
+            <div id="resPriceRange" style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 8px;">Valuation Range: ₹0 - ₹0</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
+            <div style="background: var(--bg-input); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="font-size: 0.78rem; color: var(--text-secondary);">Calculated Rate / SqFt</div>
+                <div id="resPricePps" style="font-size: 1.3rem; font-weight: 700;">₹0/sqft</div>
+            </div>
+            <div style="background: var(--bg-input); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="font-size: 0.78rem; color: var(--text-secondary);">Locality Benchmark Avg</div>
+                <div id="resLocPps" style="font-size: 1.3rem; font-weight: 700;">₹0/sqft</div>
+            </div>
+        </div>
+
+        <div style="background: var(--bg-input); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-secondary);">Market Valuation Rating</div>
+                <div id="resRatingBadge" class="badge badge-info">Fair Market Value</div>
+            </div>
+            <i class="fa-solid fa-shield-halved" style="font-size: 1.8rem; color: var(--primary);"></i>
+        </div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 28px;">
+    <div class="card">
+        <div class="card-title" style="margin-bottom: 16px;">
+            <i class="fa-solid fa-brain"></i> AI Automated Property Insights
+        </div>
+        <ul id="aiInsightsList" style="list-style: none; display: flex; flex-direction: column; gap: 12px;">
+            <li style="color: var(--text-secondary);">Run a prediction to view automated valuation insights.</li>
+        </ul>
+    </div>
+
+    <div class="card" style="height: 340px; display: flex; flex-direction: column;">
+        <div class="card-title" style="margin-bottom: 16px;">
+            <i class="fa-solid fa-lightbulb"></i> Explainable AI (Why This Price?)
+        </div>
+        <div style="flex: 1; position: relative;">
+            <canvas id="explainabilityChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 28px;">
+    <div class="card-title" style="margin-bottom: 16px;">
+        <i class="fa-solid fa-house-chimney-window"></i> Similar Property Recommendations
+    </div>
+    <div id="recommendationsGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;">
+        <div style="color: var(--text-secondary);">Run a prediction to discover similar dataset properties.</div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let currentPredictionData = null;
+
+    async function initPredictPage() {
+        try {
+            const res = await fetch('/api/metadata');
+            const metadata = await res.json();
+            const select = document.getElementById('inputLocation');
+            select.innerHTML = metadata.locations.map(loc => `<option value="${loc}">${loc}</option>`).join('');
+            handlePredictSubmit();
+        } catch (err) {
+            console.error('Predict page error:', err);
+        }
+    }
+
+    function setPreset(loc, sqft, bhk, bath, age) {
+        document.getElementById('inputLocation').value = loc;
+        document.getElementById('inputSqft').value = sqft; updateDisp('sqftDisp', `${sqft.toLocaleString()} sqft`);
+        document.getElementById('inputBhk').value = bhk; updateDisp('bhkDisp', `${bhk} BHK`);
+        document.getElementById('inputBath').value = bath; updateDisp('bathDisp', `${bath} Baths`);
+        document.getElementById('inputAge').value = age; updateDisp('ageDisp', `${age} Years Old`);
+        handlePredictSubmit();
+    }
+
+    async function handlePredictSubmit(e) {
+        if (e) e.preventDefault();
+
+        const payload = {
+            location: document.getElementById('inputLocation').value,
+            total_sqft: parseFloat(document.getElementById('inputSqft').value),
+            bhk: parseInt(document.getElementById('inputBhk').value, 10),
+            bath: parseInt(document.getElementById('inputBath').value, 10),
+            age: parseInt(document.getElementById('inputAge').value, 10)
+        };
+
+        try {
+            const res = await fetch('/api/predict', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            currentPredictionData = data;
+
+            document.getElementById('resPriceLakhs').innerText = data.formatted_price_lakhs;
+            document.getElementById('resPriceInr').innerText = `(${data.formatted_price_inr})`;
+            document.getElementById('resPriceRange').innerText = `Valuation Range: ${data.price_range_lakhs}`;
+            document.getElementById('resPricePps').innerText = data.formatted_pps;
+            document.getElementById('resLocPps').innerText = `₹${Number(data.loc_avg_pps || 0).toLocaleString('en-IN')}/sqft`;
+
+            const badge = document.getElementById('resRatingBadge');
+            badge.innerText = data.valuation_badge;
+            badge.className = `badge badge-${data.badge_color}`;
+
+            const pdfBtn = document.getElementById('btnDownloadPdf');
+            pdfBtn.style.display = 'inline-flex';
+            pdfBtn.href = `/api/download-pdf/${data.prediction_id}`;
+
+            document.getElementById('predictSummaryBadge').innerText = `${data.property_details.location} • ${data.property_details.bhk}BHK`;
+
+            document.getElementById('aiInsightsList').innerHTML = data.insights.map(ins => `
+                <li style="display: flex; gap: 10px; align-items: flex-start;">
+                    <i class="fa-solid fa-circle-check" style="color: var(--accent-green); margin-top: 4px;"></i>
+                    <span>${ins}</span>
+                </li>
+            `).join('');
+
+            const explainabilityMap = {};
+            data.explainability.forEach(item => {
+                explainabilityMap[item.feature] = Number(item.importance_pct || 0);
+            });
+            renderFeatureImportanceChart('explainabilityChart', explainabilityMap);
+
+            document.getElementById('recommendationsGrid').innerHTML = data.recommendations.map(r => `
+                <div style="background: var(--bg-input); padding: 16px; border-radius: 10px; border: 1px solid var(--border-color);">
+                    <div style="font-weight: 700; color: #fff;">${r.location}</div>
+                    <div style="font-size: 0.85rem; color: var(--text-secondary); margin: 4px 0;">${r.total_sqft} sqft | ${r.bhk} BHK | ${r.bath} Bath</div>
+                    <div style="font-size: 1.1rem; font-weight: 800; color: var(--accent-cyan); margin-top: 8px;">₹${Number(r.price_lakhs || 0).toFixed(2)} Lakhs</div>
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">₹${Number(r.price_per_sqft || 0).toFixed(2)}/sqft</div>
+                </div>
+            `).join('');
+
+            showToast('Property valuation updated successfully', 'success');
+        } catch (err) {
+            console.error('Prediction error:', err);
+            showToast('Failed to process property prediction', 'error');
+        }
+    }
+
+    async function saveCurrentFav() {
+        if (!currentPredictionData) return;
+        const p = currentPredictionData.property_details;
+        const payload = {
+            name: `${p.bhk}BHK Property in ${p.location}`,
+            location: p.location,
+            total_sqft: p.total_sqft,
+            bhk: p.bhk,
+            bath: p.bath,
+            age: p.age,
+            price_lakhs: currentPredictionData.predicted_price_lakhs,
+            price_per_sqft: currentPredictionData.price_per_sqft
+        };
+        try {
+            await fetch('/api/favorites', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            showToast('Added to Saved Favorites!', 'success');
+        } catch (err) {
+            showToast('Error saving favorite', 'error');
+        }
+    }
+
+    window.onload = initPredictPage;
+</script>
+{% endblock %}

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HomeValue AI - Smart Property Intelligence{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <aside class="app-sidebar">
+        <a href="/" class="sidebar-brand">
+            <i class="fa-solid fa-city"></i>
+            <span>HomeValue <span style="color: var(--accent-cyan);">AI</span></span>
+        </a>
+
+        <nav class="sidebar-nav">
+            <a href="/" class="nav-item"><i class="fa-solid fa-chart-pie"></i> <span>Dashboard</span></a>
+            <a href="/predict" class="nav-item"><i class="fa-solid fa-calculator"></i> <span>Predict Price</span></a>
+            <a href="/marketplace" class="nav-item"><i class="fa-solid fa-store"></i> <span>Buy / Sell / Rent</span></a>
+            <a href="/compare" class="nav-item"><i class="fa-solid fa-code-compare"></i> <span>Compare Properties</span></a>
+            <a href="/map" class="nav-item"><i class="fa-solid fa-map-location-dot"></i> <span>Location Map</span></a>
+            <a href="/affordability" class="nav-item"><i class="fa-solid fa-building-columns"></i> <span>Affordability EMI</span></a>
+            <a href="/history" class="nav-item"><i class="fa-solid fa-clock-rotate-left"></i> <span>Prediction History</span></a>
+            <a href="/favorites" class="nav-item"><i class="fa-solid fa-bookmark"></i> <span>Saved Favorites</span></a>
+            <a href="/analytics" class="nav-item"><i class="fa-solid fa-brain"></i> <span>Model Analytics</span></a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()">
+                <i class="fa-solid fa-sun"></i> <span>Toggle Theme</span>
+            </button>
+        </div>
+    </aside>
+
+    <div class="main-wrapper">
+        <header class="top-navbar">
+            <h1 class="page-title-heading">{% block page_title %}Dashboard{% endblock %}</h1>
+            <div class="status-badge">
+                <i class="fa-solid fa-microchip"></i>
+                <span id="modelHeaderBadge">Random Forest Regressor (R²: 0.98)</span>
+            </div>
+        </header>
+
+        <main class="content-body">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <div id="toastContainer"></div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script src="{{ url_for('static', filename='charts.js') }}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

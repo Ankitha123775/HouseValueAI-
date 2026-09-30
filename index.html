@@ -1,0 +1,150 @@
+{% extends "layout.html" %}
+
+{% block page_title %}Real Estate Analytics Dashboard{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 28px; background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(6,182,212,0.06)); border: 1px solid rgba(99,102,241,0.25);">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;">
+        <div>
+            <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-secondary); margin-bottom: 8px;">Market Overview</div>
+            <div style="font-size: clamp(1.7rem, 2vw, 2.5rem); font-weight: 800; line-height: 1.1;">Karnataka Property Intelligence</div>
+        </div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="/predict" class="btn-primary"><i class="fa-solid fa-plus"></i> New Prediction</a>
+            <a href="/map" class="btn-secondary"><i class="fa-solid fa-map"></i> View Map</a>
+        </div>
+    </div>
+</div>
+
+<div class="card-grid">
+    <div class="card">
+        <div class="stat-lbl"><i class="fa-solid fa-database" style="color: var(--primary);"></i> Dataset Volume</div>
+        <div class="stat-val" id="dashTotalProps">--</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Cleaned Karnataka property records</div>
+    </div>
+    <div class="card">
+        <div class="stat-lbl"><i class="fa-solid fa-indian-rupee-sign" style="color: var(--accent-cyan);"></i> Avg Dataset Price</div>
+        <div class="stat-val" id="dashAvgPrice">₹-- L</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Mean market valuation</div>
+    </div>
+    <div class="card">
+        <div class="stat-lbl"><i class="fa-solid fa-chart-line" style="color: var(--accent-green);"></i> Avg Rate / SqFt</div>
+        <div class="stat-val" id="dashAvgPps">₹--</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Benchmark rate per sq ft</div>
+    </div>
+    <div class="card">
+        <div class="stat-lbl"><i class="fa-solid fa-award" style="color: var(--accent-amber);"></i> Model Accuracy</div>
+        <div class="stat-val" id="dashR2Score">--</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Selected model R² score</div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 24px; margin-top: 8px;">
+    <div class="card" style="height: 440px; display: flex; flex-direction: column;">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fa-solid fa-chart-bar"></i> Locality Average Rate (₹/SqFt)
+            </div>
+            <a href="/map" class="btn-secondary btn-sm"><i class="fa-solid fa-map"></i> View Map</a>
+        </div>
+        <div style="flex: 1; position: relative;">
+            <canvas id="dashLocalityChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card" style="display: flex; flex-direction: column;">
+        <div class="card-header">
+            <div class="card-title">
+                <i class="fa-solid fa-bolt"></i> Market Snapshot
+            </div>
+        </div>
+
+        <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+            <a href="/predict" class="btn-primary" style="flex: 1;"><i class="fa-solid fa-plus"></i> New Prediction</a>
+            <a href="/compare" class="btn-secondary" style="flex: 1;"><i class="fa-solid fa-code-compare"></i> Compare</a>
+        </div>
+
+        <div style="background: var(--bg-input); border: 1px solid var(--border-color); border-radius: 12px; padding: 16px; margin-bottom: 18px;">
+            <div style="font-size: 0.78rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.08em;">Top Locality</div>
+            <div id="dashTopLocality" style="font-size: 1.2rem; font-weight: 800; color: var(--primary); margin-top: 8px;">--</div>
+            <div id="dashTopLocalityRate" style="font-size: 0.92rem; color: var(--accent-cyan); margin-top: 6px;">--</div>
+        </div>
+
+        <div class="stat-lbl" style="margin-bottom: 12px;">Recent Valuation History</div>
+        <div class="table-responsive" style="flex: 1;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Location</th>
+                        <th>Spec</th>
+                        <th>Est. Price</th>
+                    </tr>
+                </thead>
+                <tbody id="dashRecentHistoryBody">
+                    <tr>
+                        <td colspan="3" style="text-align: center; color: var(--text-secondary); padding: 20px;">
+                            Loading history...
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function formatCurrency(value) {
+        return `₹${Number(value || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+    }
+
+    async function loadDashboard() {
+        try {
+            const metaRes = await fetch('/api/metadata');
+            const metadata = await metaRes.json();
+            const locationSummary = metadata.location_summary || {};
+            const localityEntries = Object.entries(locationSummary);
+
+            const totalProps = Number(metadata.total_properties_in_dataset || localityEntries.reduce((sum, [, info]) => sum + (Number(info.total_properties) || 0), 0));
+            const avgPrice = Number(metadata.avg_dataset_price_lakhs || (localityEntries.reduce((sum, [, info]) => sum + Number(info.avg_price_lakhs || 0), 0) / Math.max(localityEntries.length, 1)));
+            const avgPps = Number(metadata.avg_dataset_price_per_sqft || (localityEntries.reduce((sum, [, info]) => sum + Number(info.avg_price_per_sqft || 0), 0) / Math.max(localityEntries.length, 1)));
+            const topLocalityEntry = localityEntries.reduce((best, current) => {
+                return Number(current[1].avg_price_per_sqft || 0) > Number(best[1].avg_price_per_sqft || 0) ? current : best;
+            }, localityEntries[0] || ['', { avg_price_per_sqft: 0 }]);
+
+            document.getElementById('dashTotalProps').innerText = totalProps.toLocaleString('en-IN');
+            document.getElementById('dashAvgPrice').innerText = `${formatCurrency(avgPrice)} L`;
+            document.getElementById('dashAvgPps').innerText = `${formatCurrency(avgPps)}`;
+            document.getElementById('dashR2Score').innerText = metadata.r2_score ?? '0.00';
+
+            if (topLocalityEntry && topLocalityEntry[0]) {
+                document.getElementById('dashTopLocality').innerText = topLocalityEntry[0];
+                document.getElementById('dashTopLocalityRate').innerText = `${formatCurrency(topLocalityEntry[1].avg_price_per_sqft)}/sqft`;
+            }
+
+            renderLocationPriceChart('dashLocalityChart', locationSummary);
+
+            const histRes = await fetch('/api/history');
+            const history = await histRes.json();
+            const tbody = document.getElementById('dashRecentHistoryBody');
+            if (!history || history.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">No predictions yet.</td></tr>';
+            } else {
+                tbody.innerHTML = history.slice(0, 5).map(h => `
+                    <tr>
+                        <td style="font-weight: 600;">${h.location}</td>
+                        <td>${h.total_sqft} sqft | ${h.bhk}BHK</td>
+                        <td style="font-weight: 700; color: var(--accent-cyan);">₹${Number(h.predicted_price_lakhs || 0).toFixed(2)} L</td>
+                    </tr>
+                `).join('');
+            }
+        } catch (err) {
+            console.error('Dashboard error:', err);
+            document.getElementById('dashRecentHistoryBody').innerHTML = '<tr><td colspan="3" style="text-align: center; color: var(--text-secondary);">Unable to load dashboard data.</td></tr>';
+        }
+    }
+
+    window.onload = loadDashboard;
+</script>
+{% endblock %}

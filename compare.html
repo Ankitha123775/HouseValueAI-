@@ -1,0 +1,219 @@
+{% extends "layout.html" %}
+
+{% block page_title %}Side-by-Side Property Comparison{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 28px; background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(99,102,241,0.08)); border: 1px solid rgba(16,185,129,0.25);">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;">
+        <div>
+            <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-secondary); margin-bottom: 8px;">Market comparison</div>
+            <div style="font-size: clamp(1.7rem, 2vw, 2.4rem); font-weight: 800;">Compare two properties side-by-side</div>
+        </div>
+        <span class="badge badge-success">Valuation ready</span>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-bottom: 28px;">
+    
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title" style="color: var(--primary);"><i class="fa-solid fa-house"></i> Property A</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label"><span>Locality</span></label>
+            <select id="propALocation" class="form-control loc-select"></select>
+        </div>
+        <div class="form-group">
+            <label class="form-label"><span>Carpet Area (SqFt)</span> <span id="propASqftDisp" style="color: var(--accent-cyan);">1,200 sqft</span></label>
+            <input type="range" id="propASqft" min="550" max="4800" step="50" value="1200" class="form-control" oninput="updateDisp('propASqftDisp', this.value + ' sqft')">
+        </div>
+        <div class="form-group">
+            <label class="form-label"><span>Bedrooms (BHK)</span> <span id="propABhkDisp" style="color: var(--accent-cyan);">2 BHK</span></label>
+            <input type="range" id="propABhk" min="1" max="5" step="1" value="2" class="form-control" oninput="updateDisp('propABhkDisp', this.value + ' BHK')">
+        </div>
+        <div class="form-group">
+            <label class="form-label"><span>Bathrooms</span> <span id="propABathDisp" style="color: var(--accent-cyan);">2 Baths</span></label>
+            <input type="range" id="propABath" min="1" max="5" step="1" value="2" class="form-control" oninput="updateDisp('propABathDisp', this.value + ' Baths')">
+        </div>
+        <div class="form-group">
+            <label class="form-label"><span>Property Age</span> <span id="propAAgeDisp" style="color: var(--accent-cyan);">2 Years</span></label>
+            <input type="range" id="propAAge" min="0" max="30" step="1" value="2" class="form-control" oninput="updateDisp('propAAgeDisp', this.value + ' Years')">
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title" style="color: var(--accent-green);"><i class="fa-solid fa-building"></i> Property B</div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label"><span>Locality</span></label>
+            <select id="propBLocation" class="form-control loc-select"></select>
+        </div>
+        <div class="form-group">
+            <label class="form-label"><span>Carpet Area (SqFt)</span> <span id="propBSqftDisp" style="color: var(--accent-cyan);">2,400 sqft</span></label>
+            <input type="range" id="propBSqft" min="550" max="4800" step="50" value="2400" class="form-control" oninput="updateDisp('propBSqftDisp', this.value + ' sqft')">
+        </div>
+        <div class="form-group">
+            <label class="form-label"><span>Bedrooms (BHK)</span> <span id="propBBhkDisp" style="color: var(--accent-cyan);">4 BHK</span></label>
+            <input type="range" id="propBBhk" min="1" max="5" step="1" value="4" class="form-control" oninput="updateDisp('propBBhkDisp', this.value + ' BHK')">
+        </div>
+        <div class="form-group">
+            <label class="form-label"><span>Bathrooms</span> <span id="propBBathDisp" style="color: var(--accent-cyan);">3 Baths</span></label>
+            <input type="range" id="propBBath" min="1" max="5" step="1" value="3" class="form-control" oninput="updateDisp('propBBathDisp', this.value + ' Baths')">
+        </div>
+        <div class="form-group">
+            <label class="form-label"><span>Property Age</span> <span id="propBAgeDisp" style="color: var(--accent-cyan);">6 Years</span></label>
+            <input type="range" id="propBAge" min="0" max="30" step="1" value="6" class="form-control" oninput="updateDisp('propBAgeDisp', this.value + ' Years')">
+        </div>
+    </div>
+
+</div>
+
+<div style="text-align: center; margin-bottom: 28px;">
+    <button class="btn-primary" onclick="runComparison()" style="padding: 14px 40px; font-size: 1.1rem;">
+        <i class="fa-solid fa-code-compare"></i> Compare Properties Now
+    </button>
+</div>
+
+<div id="comparisonResultContainer" class="card" style="display: none;">
+    <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-scale-balanced"></i> Comparison Evaluation Matrix</div>
+    </div>
+
+    <div id="compRecAlert" style="background: rgba(16, 185, 129, 0.12); border: 1px solid var(--accent-green); padding: 14px 18px; border-radius: 10px; margin-bottom: 24px; color: var(--accent-green); font-weight: 600;">
+        <i class="fa-solid fa-circle-check"></i> <span id="compRecText"></span>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 28px;">
+        <div class="table-responsive">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Metric Attribute</th>
+                        <th>Property A</th>
+                        <th>Property B</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td style="font-weight: 600;">Locality / Area</td>
+                        <td id="tdALoc">--</td>
+                        <td id="tdBLoc">--</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 600;">Carpet Area</td>
+                        <td id="tdASqft">--</td>
+                        <td id="tdBSqft">--</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 600;">BHK / Bathrooms</td>
+                        <td id="tdABhk">--</td>
+                        <td id="tdBBhk">--</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 600;">Property Age</td>
+                        <td id="tdAAge">--</td>
+                        <td id="tdBAge">--</td>
+                    </tr>
+                    <tr style="background: rgba(99,102,241,0.08);">
+                        <td style="font-weight: 700; color: #fff;">Estimated Market Price</td>
+                        <td id="tdAPrice" style="font-weight: 800; color: var(--primary);">--</td>
+                        <td id="tdBPrice" style="font-weight: 800; color: var(--accent-green);">--</td>
+                    </tr>
+                    <tr>
+                        <td style="font-weight: 700;">Rate per Sq. Ft.</td>
+                        <td id="tdAPps" style="font-weight: 700;">--</td>
+                        <td id="tdBPps" style="font-weight: 700;">--</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div style="height: 320px; position: relative;">
+            <canvas id="comparisonChart"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function initComparePage() {
+        try {
+            const res = await fetch('/api/metadata');
+            const metadata = await res.json();
+
+            document.querySelectorAll('.loc-select').forEach((sel, idx) => {
+                sel.innerHTML = metadata.locations.map(loc => `<option value="${loc}">${loc}</option>`).join('');
+                if (idx === 1 && metadata.locations.length > 1) sel.selectedIndex = 1;
+            });
+
+            runComparison();
+        } catch (err) {
+            console.error("Compare page error:", err);
+        }
+    }
+
+    async function runComparison() {
+        const payload = {
+            propA: {
+                name: "Property A",
+                location: document.getElementById('propALocation').value,
+                total_sqft: document.getElementById('propASqft').value,
+                bhk: document.getElementById('propABhk').value,
+                bath: document.getElementById('propABath').value,
+                age: document.getElementById('propAAge').value
+            },
+            propB: {
+                name: "Property B",
+                location: document.getElementById('propBLocation').value,
+                total_sqft: document.getElementById('propBSqft').value,
+                bhk: document.getElementById('propBBhk').value,
+                bath: document.getElementById('propBBath').value,
+                age: document.getElementById('propBAge').value
+            }
+        };
+
+        try {
+            const res = await fetch('/api/compare', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            document.getElementById('comparisonResultContainer').style.display = 'block';
+            document.getElementById('compRecText').innerHTML = data.summary_recommendation;
+
+            document.getElementById('tdALoc').innerText = data.propertyA.location;
+            document.getElementById('tdBLoc').innerText = data.propertyB.location;
+            document.getElementById('tdASqft').innerText = `${data.propertyA.total_sqft.toLocaleString()} sqft`;
+            document.getElementById('tdBSqft').innerText = `${data.propertyB.total_sqft.toLocaleString()} sqft`;
+            document.getElementById('tdABhk').innerText = `${data.propertyA.bhk} BHK / ${data.propertyA.bath} Bath`;
+            document.getElementById('tdBBhk').innerText = `${data.propertyB.bhk} BHK / ${data.propertyB.bath} Bath`;
+            document.getElementById('tdAAge').innerText = `${data.propertyA.age} Years`;
+            document.getElementById('tdBAge').innerText = `${data.propertyB.age} Years`;
+
+            document.getElementById('tdAPrice').innerText = data.propertyA.formatted_price;
+            document.getElementById('tdBPrice').innerText = data.propertyB.formatted_price;
+
+            document.getElementById('tdAPps').innerText = `₹${data.propertyA.price_per_sqft.toLocaleString()}/sqft`;
+            document.getElementById('tdBPps').innerText = `₹${data.propertyB.price_per_sqft.toLocaleString()}/sqft`;
+
+            renderPropertyComparisonChart(
+                'comparisonChart', 
+                data.propertyA.name + ' (' + data.propertyA.location + ')', data.propertyA.predicted_price_lakhs,
+                data.propertyB.name + ' (' + data.propertyB.location + ')', data.propertyB.predicted_price_lakhs
+            );
+
+        } catch (err) {
+            console.error("Comparison error:", err);
+            showToast("Comparison error occurred", "error");
+        }
+    }
+
+    window.onload = initComparePage;
+</script>
+{% endblock %}

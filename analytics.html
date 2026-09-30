@@ -1,0 +1,160 @@
+{% extends "layout.html" %}
+
+{% block page_title %}Machine Learning Model Analytics & Metrics{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 28px; background: linear-gradient(135deg, rgba(99,102,241,0.12), rgba(16,185,129,0.08)); border: 1px solid rgba(99,102,241,0.25);">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;">
+        <div>
+            <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-secondary); margin-bottom: 8px;">Model Performance</div>
+            <div style="font-size: clamp(1.6rem, 2vw, 2.3rem); font-weight: 800;">Smart pricing intelligence benchmark</div>
+        </div>
+        <span id="analyticsStatusBadge" class="badge badge-success">Loading model status...</span>
+    </div>
+</div>
+
+<div class="card-grid" style="margin-bottom: 28px;">
+    <div class="card">
+        <div class="stat-lbl"><i class="fa-solid fa-brain" style="color: var(--primary);"></i> Selected Model</div>
+        <div class="stat-val" id="techModelName" style="font-size: 1.8rem;">--</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Production pipeline</div>
+    </div>
+    <div class="card">
+        <div class="stat-lbl"><i class="fa-solid fa-accuracy" style="color: var(--accent-cyan);"></i> R² Score</div>
+        <div class="stat-val" id="techR2" style="font-size: 1.8rem;">--</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Model fit quality</div>
+    </div>
+    <div class="card">
+        <div class="stat-lbl"><i class="fa-solid fa-scale-balanced" style="color: var(--accent-green);"></i> MAE</div>
+        <div class="stat-val" id="techMae" style="font-size: 1.8rem;">--</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Average absolute error</div>
+    </div>
+    <div class="card">
+        <div class="stat-lbl"><i class="fa-solid fa-arrow-trend-up" style="color: var(--accent-amber);"></i> Residual Std</div>
+        <div class="stat-val" id="techResidualStd" style="font-size: 1.8rem;">--</div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary);">Prediction variability</div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 28px;">
+    <div class="card-header">
+        <div class="card-title"><i class="fa-solid fa-code-compare"></i> Model Performance Benchmarking</div>
+    </div>
+
+    <div class="table-responsive">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Algorithm</th>
+                    <th>R² Score (Accuracy)</th>
+                    <th>MAE (₹ Lakhs)</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody id="modelCompTableBody">
+                <tr>
+                    <td colspan="4" style="text-align: center; color: var(--text-secondary); padding: 20px;">
+                        Loading model evaluation metrics...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 28px;">
+    <div class="card" style="height: 420px; display: flex; flex-direction: column;">
+        <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-chart-bar"></i> Feature Importance Drivers</div>
+        </div>
+        <div style="flex: 1; position: relative;">
+            <canvas id="analyticsFeatureChart"></canvas>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-title" style="margin-bottom: 20px;">
+            <i class="fa-solid fa-circle-info"></i> Pipeline Technical Specs
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            <div style="background: var(--bg-input); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">Selected Model Pipeline</div>
+                <div id="techPipeline" style="font-size: 1.1rem; font-weight: 700; color: var(--primary);">--</div>
+            </div>
+
+            <div style="background: var(--bg-input); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">Root Mean Squared Error (RMSE)</div>
+                <div id="techRmse" style="font-size: 1.1rem; font-weight: 700; color: var(--accent-amber);">--</div>
+            </div>
+
+            <div style="background: var(--bg-input); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">Residual Std (95% CI Interval)</div>
+                <div id="techResidualStd2" style="font-size: 1.1rem; font-weight: 700; color: var(--accent-green);">--</div>
+            </div>
+
+            <div style="background: var(--bg-input); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="font-size: 0.8rem; color: var(--text-secondary);">Top Market Contributor</div>
+                <div id="techTopFeature" style="font-size: 1.1rem; font-weight: 700; color: var(--accent-cyan);">--</div>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    function getTopFeature(features) {
+        const entries = Object.entries(features || {});
+        if (!entries.length) return ['N/A', 0];
+        return entries.reduce((best, current) => current[1] > best[1] ? current : best, entries[0]);
+    }
+
+    async function loadAnalyticsPage() {
+        try {
+            const res = await fetch('/api/metadata');
+            const metadata = await res.json();
+
+            const models = metadata.models_evaluated;
+            const tbody = document.getElementById('modelCompTableBody');
+            tbody.innerHTML = Object.keys(models).map(algo => {
+                const info = models[algo];
+                const isSelected = (algo === metadata.selected_model);
+                return `
+                    <tr style="${isSelected ? 'background: rgba(99,102,241,0.08); font-weight: bold;' : ''}">
+                        <td style="font-weight: 700;">${algo}</td>
+                        <td style="color: var(--accent-cyan);">${info.r2_score}</td>
+                        <td>₹${info.mae_lakhs} Lakhs</td>
+                        <td>
+                            <span class="badge badge-${isSelected ? 'success' : 'info'}">
+                                ${isSelected ? 'SELECTED PRODUCTION MODEL' : 'Baseline Candidate'}
+                            </span>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+
+            const topFeature = getTopFeature(metadata.feature_importances);
+            const topFeatureName = topFeature[0].replace('cat__location_', 'Locality: ').replace('num__', '');
+
+            renderFeatureImportanceChart('analyticsFeatureChart', metadata.feature_importances);
+
+            document.getElementById('analyticsStatusBadge').innerText = `${metadata.selected_model} active`;
+            document.getElementById('techModelName').innerText = metadata.selected_model;
+            document.getElementById('techR2').innerText = metadata.r2_score;
+            document.getElementById('techMae').innerText = `₹${metadata.mae_lakhs} Lakhs`;
+            document.getElementById('techResidualStd').innerText = `± ₹${metadata.residual_std_lakhs} Lakhs`;
+            document.getElementById('techPipeline').innerText = metadata.selected_model;
+            document.getElementById('techRmse').innerText = `₹${metadata.rmse_lakhs} Lakhs`;
+            document.getElementById('techResidualStd2').innerText = `± ₹${metadata.residual_std_lakhs} Lakhs`;
+            document.getElementById('techTopFeature').innerText = `${topFeatureName} (${(topFeature[1] * 100).toFixed(1)}%)`;
+
+        } catch (err) {
+            console.error("Analytics load error:", err);
+        }
+    }
+
+    window.onload = loadAnalyticsPage;
+</script>
+{% endblock %}

@@ -1,0 +1,145 @@
+{% extends "layout.html" %}
+
+{% block page_title %}Home Loan EMI & Affordability Calculator{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 28px; background: linear-gradient(135deg, rgba(16,185,129,0.12), rgba(6,182,212,0.06)); border: 1px solid rgba(16,185,129,0.25);">
+    <div style="display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap;">
+        <div>
+            <div style="font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--text-secondary); margin-bottom: 8px;">Affordability</div>
+            <div style="font-size: clamp(1.7rem, 2vw, 2.4rem); font-weight: 800;">Home loan EMI planner</div>
+        </div>
+        <span class="badge badge-success">Smart finance check</span>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1.1fr; gap: 28px;">
+    
+    <!-- Input Calculator Form Card -->
+    <div class="card">
+        <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-building-columns"></i> Loan Parameters</div>
+        </div>
+
+        <form id="emiForm" onsubmit="calculateEMI(event)">
+            
+            <div class="form-group">
+                <label class="form-label">
+                    <span>Monthly Household Income (₹)</span>
+                    <span id="incomeDisp" style="color: var(--accent-cyan);">₹1,50,000</span>
+                </label>
+                <input type="number" id="inputIncome" value="150000" class="form-control" oninput="updateDisp('incomeDisp', '₹' + parseInt(this.value || 0).toLocaleString())" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <span>Property Total Price (₹)</span>
+                    <span id="priceDisp" style="color: var(--accent-cyan);">₹75,00,000</span>
+                </label>
+                <input type="number" id="inputPrice" value="7500000" class="form-control" oninput="updateDisp('priceDisp', '₹' + parseInt(this.value || 0).toLocaleString())" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <span>Down Payment Amount (₹)</span>
+                    <span id="downDisp" style="color: var(--accent-cyan);">₹15,00,000 (20%)</span>
+                </label>
+                <input type="number" id="inputDown" value="1500000" class="form-control" oninput="updateDisp('downDisp', '₹' + parseInt(this.value || 0).toLocaleString())" required>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <span>Interest Rate (% per annum)</span>
+                    <span id="rateDisp" style="color: var(--accent-cyan);">8.5%</span>
+                </label>
+                <input type="range" id="inputRate" min="6.0" max="14.0" step="0.1" value="8.5" class="form-control" oninput="updateDisp('rateDisp', this.value + '%')">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">
+                    <span>Loan Tenure (Years)</span>
+                    <span id="tenureDisp" style="color: var(--accent-cyan);">20 Years</span>
+                </label>
+                <input type="range" id="inputTenure" min="5" max="30" step="1" value="20" class="form-control" oninput="updateDisp('tenureDisp', this.value + ' Years')">
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%;">
+                <i class="fa-solid fa-calculator"></i> Calculate Monthly EMI
+            </button>
+        </form>
+    </div>
+
+    <!-- EMI Results Card -->
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div class="card-header">
+            <div class="card-title"><i class="fa-solid fa-receipt"></i> Financial Breakdown</div>
+        </div>
+
+        <div style="text-align: center; padding: 20px 0; border-bottom: 1px dashed var(--border-color);">
+            <div style="font-size: 0.85rem; color: var(--text-secondary); text-transform: uppercase;">Estimated Monthly EMI</div>
+            <div id="emiVal" style="font-size: 2.6rem; font-weight: 800; color: var(--accent-green); margin: 6px 0;">₹52,065</div>
+            <div id="emiRatioDisp" style="font-size: 0.9rem; color: var(--text-secondary);">EMI-to-Income Ratio: 34.7%</div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0;">
+            <div style="background: var(--bg-input); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="font-size: 0.78rem; color: var(--text-secondary);">Principal Loan Amount</div>
+                <div id="principalVal" style="font-size: 1.2rem; font-weight: 700;">₹60,00,000</div>
+            </div>
+            <div style="background: var(--bg-input); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color);">
+                <div style="font-size: 0.78rem; color: var(--text-secondary);">Total Interest Payable</div>
+                <div id="interestVal" style="font-size: 1.2rem; font-weight: 700; color: var(--accent-amber);">₹64,95,713</div>
+            </div>
+        </div>
+
+        <div style="background: var(--bg-input); padding: 14px; border-radius: 8px; border: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between;">
+            <div>
+                <div style="font-size: 0.78rem; color: var(--text-secondary);">Affordability Health Assessment</div>
+                <div id="affordabilityBadge" class="badge badge-success">Affordable (≤ 40% Income)</div>
+            </div>
+            <i class="fa-solid fa-piggy-bank" style="font-size: 1.8rem; color: var(--accent-green);"></i>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    async function calculateEMI(e) {
+        if (e) e.preventDefault();
+
+        const payload = {
+            monthly_income: parseFloat(document.getElementById('inputIncome').value),
+            property_price: parseFloat(document.getElementById('inputPrice').value),
+            down_payment: parseFloat(document.getElementById('inputDown').value),
+            interest_rate: parseFloat(document.getElementById('inputRate').value),
+            tenure_years: parseInt(document.getElementById('inputTenure').value)
+        };
+
+        try {
+            const res = await fetch('/api/affordability', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+
+            document.getElementById('emiVal').innerText = data.formatted_emi;
+            document.getElementById('principalVal').innerText = `₹${data.principal.toLocaleString()}`;
+            document.getElementById('interestVal').innerText = data.formatted_interest;
+            document.getElementById('emiRatioDisp').innerText = `EMI-to-Income Ratio: ${data.emi_income_ratio}%`;
+
+            const badge = document.getElementById('affordabilityBadge');
+            badge.innerText = `${data.affordability_status} (${data.emi_income_ratio}% of income)`;
+            badge.className = `badge badge-${data.status_color}`;
+
+            showToast("EMI calculation updated", "info");
+        } catch (err) {
+            console.error("EMI calculation error:", err);
+        }
+    }
+
+    window.onload = () => calculateEMI();
+</script>
+{% endblock %}

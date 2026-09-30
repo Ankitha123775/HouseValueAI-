@@ -1,0 +1,243 @@
+{% extends "layout.html" %}
+
+{% block page_title %}Interactive Karnataka Locality Map{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 28px;">
+    <div class="card-header">
+        <div class="card-title">
+            <i class="fa-solid fa-map-location-dot"></i> Karnataka Locality Intelligence
+        </div>
+        <span id="mapCoverageBadge" class="badge badge-info">Loading localities...</span>
+    </div>
+
+    <div class="card-grid" style="margin-bottom: 0;">
+        <div class="card" style="padding: 18px;">
+            <div class="stat-lbl">Localities Covered</div>
+            <div id="mapTotalLocalities" class="stat-val" style="font-size: 1.8rem;">--</div>
+        </div>
+        <div class="card" style="padding: 18px;">
+            <div class="stat-lbl">Average Rate</div>
+            <div id="mapAvgRate" class="stat-val" style="font-size: 1.8rem;">--</div>
+        </div>
+        <div class="card" style="padding: 18px;">
+            <div class="stat-lbl">Top Market</div>
+            <div id="mapTopLocality" class="stat-val" style="font-size: 1.05rem; line-height: 1.4;">--</div>
+        </div>
+    </div>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px;">
+        <div style="display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 0.8rem; font-weight: 600;">
+            <span style="width: 12px; height: 12px; border-radius: 50%; background: #22c55e; display: inline-block; border: 2px solid rgba(255,255,255,0.7);"></span> Value
+        </div>
+        <div style="display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 0.8rem; font-weight: 600;">
+            <span style="width: 12px; height: 12px; border-radius: 50%; background: #3b82f6; display: inline-block; border: 2px solid rgba(255,255,255,0.7);"></span> Balanced
+        </div>
+        <div style="display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 0.8rem; font-weight: 600;">
+            <span style="width: 12px; height: 12px; border-radius: 50%; background: #f59e0b; display: inline-block; border: 2px solid rgba(255,255,255,0.7);"></span> Premium
+        </div>
+        <div style="display: inline-flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 0.8rem; font-weight: 600;">
+            <span style="width: 12px; height: 12px; border-radius: 50%; background: #ef4444; display: inline-block; border: 2px solid rgba(255,255,255,0.7);"></span> Ultra premium
+        </div>
+    </div>
+</div>
+
+<div style="display: grid; grid-template-columns: minmax(0, 1fr) 340px; gap: 28px;">
+    <div class="card" style="height: 620px; padding: 0; overflow: hidden; position: relative;">
+        <div id="leafletMap" style="width: 100%; height: 100%;"></div>
+    </div>
+
+    <div class="card" style="display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+            <div class="card-header" style="margin-bottom: 16px;">
+                <div class="card-title">
+                    <i class="fa-solid fa-location-dot"></i> Selected Locality
+                </div>
+            </div>
+
+            <div style="margin-bottom: 18px;">
+                <label for="localitySelector" style="display: block; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 8px; font-weight: 600;">Jump to locality</label>
+                <select id="localitySelector" class="form-control" style="cursor: pointer;">
+                    <option>Loading localities...</option>
+                </select>
+            </div>
+
+            <div id="mapLocalityDetails" style="background: var(--bg-input); padding: 18px; border-radius: 10px; border: 1px solid var(--border-color);">
+                <div style="font-size: 0.8rem; color: var(--text-secondary); text-transform: uppercase;">Market Snapshot</div>
+                <div id="mapLocName" style="font-size: 1.6rem; font-weight: 800; color: #fff; margin: 8px 0;">Loading...</div>
+
+                <div style="margin-top: 16px;">
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Avg Benchmark Rate</div>
+                    <div id="mapLocPps" style="font-size: 1.4rem; font-weight: 700; color: var(--accent-cyan);">₹--/sqft</div>
+                </div>
+
+                <div style="margin-top: 12px;">
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Average Property Price</div>
+                    <div id="mapLocAvgPrice" style="font-size: 1.2rem; font-weight: 700; color: var(--primary);">₹-- Lakhs</div>
+                </div>
+
+                <div style="margin-top: 12px;">
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">Dataset Samples</div>
+                    <div id="mapLocCount" style="font-size: 1rem; font-weight: 600; color: #fff;">-- Verified Records</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 18px;">
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 8px;">Market Position</div>
+                <div id="mapMarketPosition" class="badge badge-info">Loading...</div>
+            </div>
+        </div>
+
+        <a href="/predict" class="btn-primary" style="width: 100%; margin-top: 20px;">
+            <i class="fa-solid fa-calculator"></i> Predict in Selected Locality
+        </a>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    let mapInstance = null;
+    let markerMap = {};
+
+    function formatLakhs(value) {
+        return `₹${Number(value || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })} Lakhs`;
+    }
+
+    function formatPricePerSqft(value) {
+        return `₹${Number(value || 0).toLocaleString('en-IN', { maximumFractionDigits: 2 })}/sqft`;
+    }
+
+    function getMarkerColor(pricePerSqft) {
+        if (pricePerSqft >= 9000) return '#ef4444';
+        if (pricePerSqft >= 6500) return '#f59e0b';
+        if (pricePerSqft >= 4500) return '#3b82f6';
+        return '#22c55e';
+    }
+
+    async function initMapPage() {
+        try {
+            const response = await fetch('/api/metadata');
+            const metadata = await response.json();
+            const locationSummaryData = metadata.location_summary || {};
+            const localityEntries = Object.entries(locationSummaryData);
+
+            if (!localityEntries.length) {
+                throw new Error('No locality data available.');
+            }
+
+            const totalLocalities = localityEntries.length;
+            const averageRate = localityEntries.reduce((sum, [, info]) => sum + Number(info.avg_price_per_sqft || 0), 0) / totalLocalities;
+            const topLocalityEntry = localityEntries.reduce((best, current) => {
+                return Number(current[1].avg_price_per_sqft || 0) > Number(best[1].avg_price_per_sqft || 0) ? current : best;
+            }, localityEntries[0]);
+
+            const selector = document.getElementById('localitySelector');
+            selector.innerHTML = localityEntries
+                .map(([loc]) => `<option value="${loc}">${loc}</option>`)
+                .join('');
+
+            selector.addEventListener('change', (event) => {
+                const locName = event.target.value;
+                const info = locationSummaryData[locName];
+                if (info) {
+                    selectLocalityOnMap(locName, info);
+                    const marker = markerMap[locName];
+                    if (marker && mapInstance) {
+                        mapInstance.flyTo(marker.getLatLng(), 11, { duration: 1.2 });
+                    }
+                }
+            });
+
+            document.getElementById('mapCoverageBadge').innerText = `${totalLocalities} Localities`;
+            document.getElementById('mapTotalLocalities').innerText = totalLocalities;
+            document.getElementById('mapAvgRate').innerText = `₹${averageRate.toLocaleString('en-IN', { maximumFractionDigits: 0 })}/sqft`;
+            document.getElementById('mapTopLocality').innerText = topLocalityEntry[0];
+
+            mapInstance = L.map('leafletMap', {
+                zoomControl: true,
+                scrollWheelZoom: true
+            }).setView([14.5, 75.5], 7);
+
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 18,
+                attribution: '© OpenStreetMap contributors'
+            }).addTo(mapInstance);
+
+            const bounds = [];
+            localityEntries.forEach(([loc, info]) => {
+                const lat = Number(info.lat);
+                const lng = Number(info.lng);
+
+                if (!Number.isFinite(lat) || !Number.isFinite(lng)) return;
+
+                bounds.push([lat, lng]);
+
+                const marker = L.circleMarker([lat, lng], {
+                    radius: 8,
+                    color: '#ffffff',
+                    weight: 1.5,
+                    fillColor: getMarkerColor(Number(info.avg_price_per_sqft || 0)),
+                    fillOpacity: 0.9
+                }).addTo(mapInstance);
+                const popupContent = `
+                    <div style="font-family: sans-serif; padding: 4px; min-width: 170px;">
+                        <div style="font-size: 0.95rem; font-weight: 800; margin-bottom: 6px; color: #0f172a;">${loc}</div>
+                        <div style="color: #4f46e5; font-weight: 700;">Avg: ${formatPricePerSqft(info.avg_price_per_sqft)}</div>
+                        <div style="color: #475569; margin-top: 4px;">Mean Price: ${formatLakhs(info.avg_price_lakhs)}</div>
+                    </div>
+                `;
+                marker.bindPopup(popupContent);
+                marker.on('click', () => selectLocalityOnMap(loc, info));
+                markerMap[loc] = marker;
+            });
+
+            if (bounds.length > 0) {
+                mapInstance.fitBounds(bounds, { padding: [28, 28] });
+            }
+
+            const [firstLoc, firstInfo] = localityEntries[0];
+            const localitySelector = document.getElementById('localitySelector');
+            if (localitySelector) localitySelector.value = firstLoc;
+            selectLocalityOnMap(firstLoc, firstInfo);
+
+        } catch (err) {
+            console.error('Map page error:', err);
+            const fallback = document.getElementById('mapLocName');
+            if (fallback) fallback.innerText = 'Map unavailable';
+        }
+    }
+
+    function selectLocalityOnMap(locName, info) {
+        const pricePerSqft = Number(info.avg_price_per_sqft || 0);
+        const avgPriceLakhs = Number(info.avg_price_lakhs || 0);
+        const totalProperties = Number(info.total_properties || 0);
+
+        document.getElementById('mapLocName').innerText = locName;
+        document.getElementById('mapLocPps').innerText = formatPricePerSqft(pricePerSqft);
+        document.getElementById('mapLocAvgPrice').innerText = formatLakhs(avgPriceLakhs);
+        document.getElementById('mapLocCount').innerText = `${totalProperties.toLocaleString('en-IN')} Verified Records`;
+
+        const selector = document.getElementById('localitySelector');
+        if (selector && selector.value !== locName) {
+            selector.value = locName;
+        }
+
+        const marketTier =
+            pricePerSqft >= 9000 ? 'Premium Market' :
+            pricePerSqft >= 6500 ? 'High Demand' :
+            pricePerSqft >= 4500 ? 'Balanced Market' :
+            'Value Market';
+
+        const badge = document.getElementById('mapMarketPosition');
+        badge.className = 'badge ' + (
+            pricePerSqft >= 9000 ? 'badge-warning' :
+            pricePerSqft >= 6500 ? 'badge-info' :
+            pricePerSqft >= 4500 ? 'badge-success' : 'badge-info'
+        );
+        badge.innerText = marketTier;
+    }
+
+    window.onload = initMapPage;
+</script>
+{% endblock %}

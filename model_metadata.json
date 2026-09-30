@@ -1,0 +1,260 @@
+{
+  "models_evaluated": {
+    "LinearRegression": {
+      "r2_score": 0.9179,
+      "mae_lakhs": 20.79
+    },
+    "RandomForestRegressor": {
+      "r2_score": 0.9764,
+      "mae_lakhs": 12.01,
+      "rmse_lakhs": 15.67
+    }
+  },
+  "selected_model": "RandomForestRegressor",
+  "r2_score": 0.9764,
+  "mae_lakhs": 12.01,
+  "rmse_lakhs": 15.67,
+  "residual_std_lakhs": 15.66,
+  "locations": [
+    "Ballari - Gandhinagar",
+    "Belagavi - Tilakwadi",
+    "Bengaluru - Electronic City",
+    "Bengaluru - HSR Layout",
+    "Bengaluru - Hebbal",
+    "Bengaluru - Indiranagar",
+    "Bengaluru - Jayanagar",
+    "Bengaluru - Koramangala",
+    "Bengaluru - Whitefield",
+    "Bengaluru - Yelahanka",
+    "Davangere - MCC B Block",
+    "Dharwad - Kalyan Nagar",
+    "Hassan - Kuvempu Nagar",
+    "Hubballi - Vidyanagar",
+    "Kalaburagi - Station Road",
+    "Mangaluru - Bejai",
+    "Mangaluru - Kadri",
+    "Mysuru - Gokulam",
+    "Mysuru - Kuvempunagar",
+    "Mysuru - Vijayanagar",
+    "Shivamogga - Vinoba Nagar",
+    "Tumakuru - Siddaganga Layout",
+    "Udupi - Manipal"
+  ],
+  "location_summary": {
+    "Ballari - Gandhinagar": {
+      "avg_price_lakhs": 107.89,
+      "avg_price_per_sqft": 3952.6,
+      "total_properties": 104,
+      "lat": 15.1394,
+      "lng": 76.9214
+    },
+    "Belagavi - Tilakwadi": {
+      "avg_price_lakhs": 123.35,
+      "avg_price_per_sqft": 4885.67,
+      "total_properties": 108,
+      "lat": 15.8361,
+      "lng": 74.5086
+    },
+    "Bengaluru - Electronic City": {
+      "avg_price_lakhs": 138.5,
+      "avg_price_per_sqft": 5146.26,
+      "total_properties": 107,
+      "lat": 12.8452,
+      "lng": 77.6602
+    },
+    "Bengaluru - HSR Layout": {
+      "avg_price_lakhs": 225.51,
+      "avg_price_per_sqft": 8587.29,
+      "total_properties": 104,
+      "lat": 12.9121,
+      "lng": 77.6445
+    },
+    "Bengaluru - Hebbal": {
+      "avg_price_lakhs": 217.0,
+      "avg_price_per_sqft": 7756.93,
+      "total_properties": 96,
+      "lat": 13.0358,
+      "lng": 77.597
+    },
+    "Bengaluru - Indiranagar": {
+      "avg_price_lakhs": 305.92,
+      "avg_price_per_sqft": 11741.13,
+      "total_properties": 103,
+      "lat": 12.9784,
+      "lng": 77.6408
+    },
+    "Bengaluru - Jayanagar": {
+      "avg_price_lakhs": 269.7,
+      "avg_price_per_sqft": 10145.94,
+      "total_properties": 100,
+      "lat": 12.9308,
+      "lng": 77.5838
+    },
+    "Bengaluru - Koramangala": {
+      "avg_price_lakhs": 288.54,
+      "avg_price_per_sqft": 11247.91,
+      "total_properties": 110,
+      "lat": 12.9352,
+      "lng": 77.6245
+    },
+    "Bengaluru - Whitefield": {
+      "avg_price_lakhs": 191.82,
+      "avg_price_per_sqft": 7486.0,
+      "total_properties": 107,
+      "lat": 12.9698,
+      "lng": 77.75
+    },
+    "Bengaluru - Yelahanka": {
+      "avg_price_lakhs": 152.99,
+      "avg_price_per_sqft": 5533.78,
+      "total_properties": 102,
+      "lat": 13.1007,
+      "lng": 77.5963
+    },
+    "Davangere - MCC B Block": {
+      "avg_price_lakhs": 106.68,
+      "avg_price_per_sqft": 4196.34,
+      "total_properties": 106,
+      "lat": 14.4673,
+      "lng": 75.9241
+    },
+    "Dharwad - Kalyan Nagar": {
+      "avg_price_lakhs": 118.17,
+      "avg_price_per_sqft": 4553.41,
+      "total_properties": 116,
+      "lat": 15.4589,
+      "lng": 75.0078
+    },
+    "Hassan - Kuvempu Nagar": {
+      "avg_price_lakhs": 104.15,
+      "avg_price_per_sqft": 3852.22,
+      "total_properties": 123,
+      "lat": 13.0033,
+      "lng": 76.1004
+    },
+    "Hubballi - Vidyanagar": {
+      "avg_price_lakhs": 141.77,
+      "avg_price_per_sqft": 5142.19,
+      "total_properties": 116,
+      "lat": 15.3647,
+      "lng": 75.124
+    },
+    "Kalaburagi - Station Road": {
+      "avg_price_lakhs": 98.47,
+      "avg_price_per_sqft": 3729.62,
+      "total_properties": 107,
+      "lat": 17.3297,
+      "lng": 76.8343
+    },
+    "Mangaluru - Bejai": {
+      "avg_price_lakhs": 184.43,
+      "avg_price_per_sqft": 6588.89,
+      "total_properties": 96,
+      "lat": 12.8872,
+      "lng": 74.8465
+    },
+    "Mangaluru - Kadri": {
+      "avg_price_lakhs": 175.35,
+      "avg_price_per_sqft": 7143.41,
+      "total_properties": 108,
+      "lat": 12.8797,
+      "lng": 74.856
+    },
+    "Mysuru - Gokulam": {
+      "avg_price_lakhs": 175.47,
+      "avg_price_per_sqft": 6730.02,
+      "total_properties": 99,
+      "lat": 12.3218,
+      "lng": 76.6268
+    },
+    "Mysuru - Kuvempunagar": {
+      "avg_price_lakhs": 148.91,
+      "avg_price_per_sqft": 5579.95,
+      "total_properties": 100,
+      "lat": 12.2858,
+      "lng": 76.6264
+    },
+    "Mysuru - Vijayanagar": {
+      "avg_price_lakhs": 165.88,
+      "avg_price_per_sqft": 6191.25,
+      "total_properties": 120,
+      "lat": 12.3364,
+      "lng": 76.6135
+    },
+    "Shivamogga - Vinoba Nagar": {
+      "avg_price_lakhs": 106.34,
+      "avg_price_per_sqft": 4228.87,
+      "total_properties": 129,
+      "lat": 13.938,
+      "lng": 75.5681
+    },
+    "Tumakuru - Siddaganga Layout": {
+      "avg_price_lakhs": 113.33,
+      "avg_price_per_sqft": 4492.42,
+      "total_properties": 137,
+      "lat": 13.3379,
+      "lng": 77.1173
+    },
+    "Udupi - Manipal": {
+      "avg_price_lakhs": 167.53,
+      "avg_price_per_sqft": 5912.71,
+      "total_properties": 102,
+      "lat": 13.3525,
+      "lng": 74.7865
+    }
+  },
+  "feature_importances": {
+    "total_sqft": 0.5982867882083848,
+    "bhk": 0.0005815252115563002,
+    "bath": 0.0007688586794445693,
+    "age": 0.0025164260400957618,
+    "location_Ballari - Gandhinagar": 0.0008107552176241748,
+    "location_Belagavi - Tilakwadi": 5.756387997465435e-06,
+    "location_Bengaluru - Electronic City": 3.813699265348835e-05,
+    "location_Bengaluru - HSR Layout": 0.030016551019046222,
+    "location_Bengaluru - Hebbal": 0.022626924520285703,
+    "location_Bengaluru - Indiranagar": 0.12174987625188154,
+    "location_Bengaluru - Jayanagar": 0.07125877755435114,
+    "location_Bengaluru - Koramangala": 0.08524357881288509,
+    "location_Bengaluru - Whitefield": 0.017329315701847016,
+    "location_Bengaluru - Yelahanka": 0.000542861265434486,
+    "location_Davangere - MCC B Block": 0.00018317033765802385,
+    "location_Dharwad - Kalyan Nagar": 2.2686211764789948e-05,
+    "location_Hassan - Kuvempu Nagar": 0.0020056980009575663,
+    "location_Hubballi - Vidyanagar": 3.2600976832619194e-05,
+    "location_Kalaburagi - Station Road": 0.0018875579069462221,
+    "location_Mangaluru - Bejai": 0.009155597741685093,
+    "location_Mangaluru - Kadri": 0.012862556491738586,
+    "location_Mysuru - Gokulam": 0.009826417086074294,
+    "location_Mysuru - Kuvempunagar": 0.001036595619417565,
+    "location_Mysuru - Vijayanagar": 0.007118845440495257,
+    "location_Shivamogga - Vinoba Nagar": 0.00028974331340266945,
+    "location_Tumakuru - Siddaganga Layout": 0.00011309936461224365,
+    "location_Udupi - Manipal": 0.0036892996449274544
+  },
+  "total_properties_in_dataset": 2500,
+  "avg_dataset_price_lakhs": 163.98,
+  "avg_dataset_price_per_sqft": 6212.59,
+  "input_ranges": {
+    "total_sqft": {
+      "min": 553,
+      "max": 4799,
+      "default": 1450
+    },
+    "bhk": {
+      "min": 1,
+      "max": 5,
+      "default": 3
+    },
+    "bath": {
+      "min": 1,
+      "max": 6,
+      "default": 2
+    },
+    "age": {
+      "min": 0,
+      "max": 29,
+      "default": 4
+    }
+  }
+}
